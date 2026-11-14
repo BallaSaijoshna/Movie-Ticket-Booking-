@@ -1,0 +1,611 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Ticket Booking System</title>
+
+    <!-- React Libraries -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- CSS -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f2f4f8;
+            color: #222;
+        }
+
+        header {
+            background: #15152b;
+            color: white;
+            padding: 22px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin-bottom: 8px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            margin-bottom: 18px;
+            color: #202044;
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+        }
+
+        .movie-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+        }
+
+        .movie-poster {
+            font-size: 65px;
+            margin-bottom: 12px;
+        }
+
+        .movie-card h3 {
+            margin-bottom: 8px;
+        }
+
+        .movie-card p {
+            margin: 7px 0;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 9px 0 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        button {
+            background: #5b42d6;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #3925a8;
+        }
+
+        button:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+
+        .cancel-btn {
+            background: #d93636;
+            padding: 8px 12px;
+        }
+
+        .cancel-btn:hover {
+            background: #a91f1f;
+        }
+
+        .selected {
+            border: 2px solid #5b42d6;
+            background: #f5f2ff;
+        }
+
+        .total {
+            font-size: 21px;
+            font-weight: bold;
+            color: #2d248a;
+            margin: 12px 0;
+        }
+
+        .message {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            background: #e5f7e9;
+            color: #17642c;
+        }
+
+        .error {
+            background: #ffe8e8;
+            color: #a00000;
+        }
+
+        .booking-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .booking-card p {
+            margin: 7px 0;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat {
+            background: #f0edff;
+            padding: 18px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat h3 {
+            font-size: 26px;
+            color: #4933bd;
+            margin-bottom: 8px;
+        }
+
+        footer {
+            background: #15152b;
+            color: white;
+            text-align: center;
+            padding: 18px;
+            margin-top: 30px;
+        }
+
+        @media(max-width: 600px) {
+            .container {
+                width: 94%;
+            }
+
+            .section {
+                padding: 17px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="root"></div>
+
+    <!-- React JavaScript -->
+    <script type="text/babel">
+
+        const movies = [
+            {
+                id: 1,
+                name: "Avengers",
+                genre: "Action",
+                language: "English",
+                price: 200,
+                poster: "🦸"
+            },
+            {
+                id: 2,
+                name: "RRR",
+                genre: "Action / Drama",
+                language: "Telugu",
+                price: 180,
+                poster: "🎬"
+            },
+            {
+                id: 3,
+                name: "Pushpa 2",
+                genre: "Action",
+                language: "Telugu",
+                price: 220,
+                poster: "🔥"
+            },
+            {
+                id: 4,
+                name: "Animal",
+                genre: "Drama",
+                language: "Hindi",
+                price: 170,
+                poster: "🎥"
+            }
+        ];
+
+        function App() {
+
+            const [selectedMovie, setSelectedMovie] = React.useState(null);
+            const [customerName, setCustomerName] = React.useState("");
+            const [email, setEmail] = React.useState("");
+            const [tickets, setTickets] = React.useState(1);
+            const [showTime, setShowTime] = React.useState("10:00 AM");
+
+            const [bookings, setBookings] = React.useState(() => {
+                try {
+                    return JSON.parse(
+                        localStorage.getItem("movieBookings")
+                    ) || [];
+                } catch {
+                    return [];
+                }
+            });
+
+            const [message, setMessage] = React.useState("");
+            const [isError, setIsError] = React.useState(false);
+
+            const totalAmount = selectedMovie
+                ? selectedMovie.price * Number(tickets)
+                : 0;
+
+            React.useEffect(() => {
+                localStorage.setItem(
+                    "movieBookings",
+                    JSON.stringify(bookings)
+                );
+            }, [bookings]);
+
+            function selectMovie(movie) {
+                setSelectedMovie(movie);
+                setMessage("");
+            }
+
+            function bookTicket(event) {
+                event.preventDefault();
+
+                if (!selectedMovie) {
+                    setMessage("Please select a movie.");
+                    setIsError(true);
+                    return;
+                }
+
+                if (!customerName.trim()) {
+                    setMessage("Please enter your name.");
+                    setIsError(true);
+                    return;
+                }
+
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    setMessage("Please enter a valid email address.");
+                    setIsError(true);
+                    return;
+                }
+
+                if (tickets < 1 || tickets > 10) {
+                    setMessage("Please select between 1 and 10 tickets.");
+                    setIsError(true);
+                    return;
+                }
+
+                const newBooking = {
+                    id: Date.now(),
+                    movie: selectedMovie.name,
+                    customer: customerName.trim(),
+                    email: email,
+                    tickets: Number(tickets),
+                    showTime: showTime,
+                    amount: totalAmount,
+                    date: new Date().toLocaleString()
+                };
+
+                setBookings(previous => [
+                    newBooking,
+                    ...previous
+                ]);
+
+                setMessage(
+                    "Booking successful! Your booking ID is " +
+                    newBooking.id
+                );
+
+                setIsError(false);
+
+                setCustomerName("");
+                setEmail("");
+                setTickets(1);
+                setSelectedMovie(null);
+            }
+
+            function cancelBooking(id) {
+                const confirmCancel = window.confirm(
+                    "Are you sure you want to cancel this booking?"
+                );
+
+                if (!confirmCancel) return;
+
+                setBookings(previous =>
+                    previous.filter(booking => booking.id !== id)
+                );
+
+                setMessage("Booking cancelled successfully.");
+                setIsError(false);
+            }
+
+            const totalTickets = bookings.reduce(
+                (sum, booking) => sum + booking.tickets, 0
+            );
+
+            const totalRevenue = bookings.reduce(
+                (sum, booking) => sum + booking.amount, 0
+            );
+
+            return (
+                <div>
+
+                    <header>
+                        <h1>🎬 Movie Ticket Booking System</h1>
+                        <p>Book your favourite movies online</p>
+                    </header>
+
+                    <div className="container">
+
+                        {message && (
+                            <div className={
+                                isError ? "message error" : "message"
+                            }>
+                                {message}
+                            </div>
+                        )}
+
+                        {/* Dashboard */}
+                        <div className="section">
+                            <h2>Booking Dashboard</h2>
+
+                            <div className="dashboard">
+                                <div className="stat">
+                                    <h3>{bookings.length}</h3>
+                                    <p>Total Bookings</p>
+                                </div>
+
+                                <div className="stat">
+                                    <h3>{totalTickets}</h3>
+                                    <p>Tickets Booked</p>
+                                </div>
+
+                                <div className="stat">
+                                    <h3>₹{totalRevenue}</h3>
+                                    <p>Total Amount</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Movie List */}
+                        <div className="section">
+                            <h2>Available Movies</h2>
+
+                            <div className="movie-grid">
+
+                                {movies.map(movie => (
+
+                                    <div
+                                        className={
+                                            selectedMovie?.id === movie.id
+                                                ? "movie-card selected"
+                                                : "movie-card"
+                                        }
+                                        key={movie.id}
+                                    >
+
+                                        <div className="movie-poster">
+                                            {movie.poster}
+                                        </div>
+
+                                        <h3>{movie.name}</h3>
+
+                                        <p>Genre: {movie.genre}</p>
+                                        <p>Language: {movie.language}</p>
+                                        <p>Ticket Price: ₹{movie.price}</p>
+
+                                        <button
+                                            onClick={() => selectMovie(movie)}
+                                        >
+                                            {selectedMovie?.id === movie.id
+                                                ? "Selected"
+                                                : "Select Movie"}
+                                        </button>
+
+                                    </div>
+
+                                ))}
+
+                            </div>
+                        </div>
+
+                        {/* Booking Form */}
+                        <div className="section">
+                            <h2>Book Your Tickets</h2>
+
+                            <form onSubmit={bookTicket}>
+
+                                <label>Selected Movie</label>
+
+                                <input
+                                    type="text"
+                                    value={
+                                        selectedMovie
+                                            ? selectedMovie.name
+                                            : "Please select a movie above"
+                                    }
+                                    readOnly
+                                />
+
+                                <label>Customer Name</label>
+
+                                <input
+                                    type="text"
+                                    placeholder="Enter your full name"
+                                    value={customerName}
+                                    onChange={event =>
+                                        setCustomerName(event.target.value)
+                                    }
+                                />
+
+                                <label>Email Address</label>
+
+                                <input
+                                    type="email"
+                                    placeholder="Enter your email"
+                                    value={email}
+                                    onChange={event =>
+                                        setEmail(event.target.value)
+                                    }
+                                />
+
+                                <label>Number of Tickets</label>
+
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="10"
+                                    value={tickets}
+                                    onChange={event =>
+                                        setTickets(event.target.value)
+                                    }
+                                />
+
+                                <label>Show Time</label>
+
+                                <select
+                                    value={showTime}
+                                    onChange={event =>
+                                        setShowTime(event.target.value)
+                                    }
+                                >
+                                    <option>10:00 AM</option>
+                                    <option>1:00 PM</option>
+                                    <option>4:00 PM</option>
+                                    <option>7:00 PM</option>
+                                    <option>10:00 PM</option>
+                                </select>
+
+                                <div className="total">
+                                    Total Amount: ₹{totalAmount}
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={!selectedMovie}
+                                >
+                                    Confirm Booking
+                                </button>
+
+                            </form>
+                        </div>
+
+                        {/* Booking History */}
+                        <div className="section">
+                            <h2>Booking History</h2>
+
+                            {bookings.length === 0 ? (
+
+                                <p>No bookings available.</p>
+
+                            ) : (
+
+                                bookings.map(booking => (
+
+                                    <div
+                                        className="booking-card"
+                                        key={booking.id}
+                                    >
+
+                                        <h3>{booking.movie}</h3>
+
+                                        <p>
+                                            <b>Booking ID:</b> {booking.id}
+                                        </p>
+
+                                        <p>
+                                            <b>Customer:</b> {booking.customer}
+                                        </p>
+
+                                        <p>
+                                            <b>Email:</b> {booking.email}
+                                        </p>
+
+                                        <p>
+                                            <b>Tickets:</b> {booking.tickets}
+                                        </p>
+
+                                        <p>
+                                            <b>Show Time:</b> {booking.showTime}
+                                        </p>
+
+                                        <p>
+                                            <b>Total Amount:</b> ₹{booking.amount}
+                                        </p>
+
+                                        <p>
+                                            <b>Booking Date:</b> {booking.date}
+                                        </p>
+
+                                        <button
+                                            className="cancel-btn"
+                                            onClick={() =>
+                                                cancelBooking(booking.id)
+                                            }
+                                        >
+                                            Cancel Booking
+                                        </button>
+
+                                    </div>
+
+                                ))
+
+                            )}
+                        </div>
+
+                    </div>
+
+                    <footer>
+                        <p>© 2026 Movie Ticket Booking System</p>
+                        <p>Developed using HTML, CSS, JavaScript and React.js</p>
+                    </footer>
+
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(
+            document.getElementById("root")
+        );
+
+        root.render(<App />);
+
+    </script>
+
+</body>
+</html>
